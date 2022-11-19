@@ -130,5 +130,92 @@ def slider_position(sli_x_loc,corner, corner_val):
     sli_width=0.03
     botmidy=corner[2]
     botmidx=corner[0]-sli_width/2+(sli_x_loc-corner_val[0])*(corner[1]-corner[0])/(corner_val[1]-corner_val[0])
-    sli_height=(corner[3]-corner[2])/2-corner[4]/5  # die fünf ist über den Daumen gepeilt. Hier ist andernfalls ertwas recherche notwendig
+    sli_height=(corner[3]-corner[2])/2-corner[4]/5  # die fünf ist über den Daumen gepeilt. Hier ist andernfalls etwas recherche notwendig
     return [botmidx, botmidy, sli_width, sli_height]
+
+
+
+class Ableitungquiz:
+    def __init__(self,n):
+
+        self.Nquest=n
+        self.corner=[0.05,0.95,0.05,0.95,0.2]
+        self.corner_val=[-5, 5, -5, 5]
+
+        #question
+        
+        self.fig=[0]*self.Nquest
+        self.ax=[0]*self.Nquest
+        self.axsol=[0]*self.Nquest
+        self.sli=[[0,0,0,0,0,0,0,0,0,0] for _ in range(self.Nquest)] # a maximum of 10 slider per question
+        self.ax_sli=[[0,0,0,0,0,0,0,0,0,0] for _ in range(self.Nquest)]
+
+        
+        #evaluation
+        self.deviation=[[0,0,0,0,0,0,0,0,0,0] for _ in range(self.Nquest)]
+        self.question_dev=[0]*self.Nquest
+
+        
+    def questions(self,i):
+        #build figures
+        self.fig[i] = plt.figure()
+        self.ax[i]=self.fig[i].add_subplot(211)
+        self.axsol[i]=self.fig[i].add_subplot(212)
+        
+
+        #geometry and style
+        self.fig[i].subplots_adjust(left=self.corner[0], right=self.corner[1], bottom=self.corner[2], top=self.corner[3], hspace=self.corner[4])
+        schulgraph(self.ax[i])
+        schulgraph(self.axsol[i])
+
+        #setup each and every slider
+        x,y,sli_x_loc,yprime_loc,yprime=func(i)
+        for j in range(len(sli_x_loc)):
+            sli_loc=slider_position(sli_x_loc[j],self.corner,self.corner_val)
+            self.ax_sli[i][j] = self.fig[i].add_axes(sli_loc)
+            self.sli[i][j] = Slider(self.ax_sli[i][j], "Nr."+str(j+1), self.corner_val[2],self.corner_val[3], valinit=0, orientation="vertical",alpha=0.0, initcolor='none')
+            self.sli[i][j].valtext.set_y(0.05)
+            self.sli[i][j].track.set_alpha(0.5)
+            
+        # show function of this question
+        self.ax[i].plot(x, y)
+
+        #finally be not friendly this time and give no hint for the solution (dashed line)
+        #intro_axsol.plot(x, yprime,'--')  
+        
+        plt.show()
+
+        
+    def close_and_save_last_question(self,i):
+        x,_,_,yprime_loc,yprime=func(i)
+        val=0
+        for j in range(len(yprime_loc)):
+            pos = self.sli[i][j].val
+            self.deviation[i][j]=abs(pos-yprime_loc[j])
+        plt.close(fig=self.fig[i])
+
+        
+    def evaluation(self):    
+        for i in range(self.Nquest):
+            self.question_dev[i]=sum(self.deviation[i])
+        total_deviation=sum(self.question_dev)
+        
+        for i in range(self.Nquest):
+            x,_,_,_,yprime=func(i)
+            self.axsol[i].plot(x, yprime,'--')
+            self.fig[i].show()
+            print("Bei dieser Frage war die Abweichung:",self.question_dev[i])
+        print("_____________________________________________________________________")
+        print("Frage                  Abweichung")
+        for i in range(self.Nquest):
+            print(i,"                    ",self.question_dev[i])
+        print("                      __________")
+        print("Gesamtabweichung:     ", total_deviation)
+              
+        
+        
+
+        
+
+
+
