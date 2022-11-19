@@ -145,6 +145,8 @@ class Ableitungquiz:
         #question
         
         self.fig=[0]*self.Nquest
+        self.eval_fig=[0]*self.Nquest
+        self.eval_fig_manager=[0]*self.Nquest
         self.ax=[0]*self.Nquest
         self.axsol=[0]*self.Nquest
         self.sli=[[0,0,0,0,0,0,0,0,0,0] for _ in range(self.Nquest)] # a maximum of 10 slider per question
@@ -203,7 +205,13 @@ class Ableitungquiz:
         for i in range(self.Nquest):
             x,_,_,_,yprime=func(i)
             self.axsol[i].plot(x, yprime,'--')
-            self.fig[i].show()
+
+            self.eval_fig[i] = plt.figure()
+            self.eval_fig_manager[i] = self.eval_fig[i].canvas.manager
+            self.eval_fig_manager[i].canvas.figure = self.fig[i]
+            self.fig[i].set_canvas(self.eval_fig_manager[i].canvas)
+            
+            plt.show()
             print("Bei dieser Frage war die Abweichung:",self.question_dev[i])
         print("_____________________________________________________________________")
         print("Frage                  Abweichung")
